@@ -189,9 +189,12 @@ if uploaded_video:
         out.release()
 
         st.success("✅ Detection complete! 🎉")
-
+        
         # Display processed video
         st.video(output_path)
+        
+        st.markdown("<h3>If the video doesn't appear, you can still download the processed version using the button below.</h3>", unsafe_allow_html=True)
+
 
         # Provide download button
         with open(output_path, "rb") as file:
