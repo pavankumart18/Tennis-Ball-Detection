@@ -3,7 +3,6 @@ import cv2
 import torch
 from pathlib import Path
 import tempfile
-import sys
 import numpy as np
 
 # Import YOLOv5 model and utilities
@@ -17,57 +16,110 @@ device = select_device('')  # Use CUDA if available
 model = DetectMultiBackend(model_path, device=device, dnn=False)
 img_size = 640  # Set input size to 640x640 for model
 
-# CSS for styling with wider layout and colorful theme
+# CSS for styling with a colorful layout
 st.markdown("""
     <style>
-        /* Expand width of main container */
+        /* Main container styling */
         .main {
-            max-width: 1000px;
+            max-width: 1500px;
             padding: 20px;
-            background-color: #f0f4f8;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
             border-radius: 15px;
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
         }
         
-        /* Full-screen container */
+        /* Background gradient for entire app */
         .css-18e3th9 {
-            background: linear-gradient(135deg, #d4fc79, #96e6a1);
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
         }
-        
+
         /* Title styling */
         h1 {
-            color: #3a3f5c;
+            color: #ffffff;
+            text-align: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
         }
-        
+
+        /* Subheading styling */
+        h3 {
+            color: #000000;
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+            background: -webkit-linear-gradient(#ff7eb3, #ff758c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         /* Button styling */
         .stButton>button {
             background-color: #4CAF50;
             color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
+            padding: 12px 25px;
+            border-radius: 15px;
             border: none;
             cursor: pointer;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
         .stButton>button:hover {
             background-color: #45a049;
+            transform: scale(1.05);
         }
 
-        /* Progress bar styling */
+        /* File uploader styling */
+        .stFileUploader {
+            border: 2px dashed #4CAF50;
+            border-radius: 15px;
+            background: linear-gradient(to right, #185a9d, #43cea2);
+
+            padding: 10px;
+            margin: 10px;
+        }
+
+        /* Progress bar */
         .stProgress .st-bs {
-            background-color: #3a3f5c !important;
+            background: linear-gradient(to right, #ff6a00, #ee0979) !important;
+        }
+
+        /* Footer styling */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            background: linear-gradient(to right, #185a9d, #43cea2);
+            color: white;
+            border-radius: 15px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🎥 YOLOv5 Player and Ball Detection Application")
-st.write("Upload a video to detect players and balls using the YOLOv5 model.")
+# Header section
+st.markdown("<h1>YOLOv5 Player 🏃🏻🏃🏻 & Ball Detection 🎾</h1>", unsafe_allow_html=True)
+st.markdown("<h3>💡 A colorful app to detect players and balls in your Tennis videos</h3>", unsafe_allow_html=True)
 
-# File uploader for video input
-uploaded_video = st.file_uploader("Upload a video", type=["mp4", "mov", "avi", "mkv"])
+# Add a separator
+st.markdown("<hr style='border: 1px solid #ddd;'>", unsafe_allow_html=True)
+
+# Instructions section
+st.markdown("""
+    ### 🛠️ How It Works
+    1. **Upload a video file**: Supported formats include `.mp4`, `.mov`, `.avi`, and `.mkv`.
+    2. **Click "Process"**: The app will process the video frame by frame.
+    3. **Download the output**: Once processing is complete, you can download the video with bounding boxes.
+""", unsafe_allow_html=True)
+
+# Add a colorful note
+st.markdown("""
+    <div style="color: #444; background: #fff4e6; border-left: 4px solid #ff7e5f; padding: 10px; border-radius: 5px;">
+        💡 <strong>Pro Tip:</strong> For faster processing, try shorter videos or lower resolutions.
+    </div>
+""", unsafe_allow_html=True)
+
+# File uploader
+uploaded_video = st.file_uploader("🎥 Upload Your Video Here", type=["mp4", "mov", "avi", "mkv"])
 
 if uploaded_video:
     # Create a temporary file to store the uploaded video
@@ -76,7 +128,7 @@ if uploaded_video:
     temp_video_path.close()
 
     # Process button
-    if st.button("Process"):
+    if st.button("🚀 Start Detection"):
         # Load video and initialize parameters
         cap = cv2.VideoCapture(temp_video_path.name)
         output_path = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4').name
@@ -85,7 +137,7 @@ if uploaded_video:
         out = cv2.VideoWriter(output_path, fourcc, fps, (img_size, img_size))
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        st.write("Processing video...")
+        st.markdown("<h4>🌀 Processing Video... Hang tight!</h4>", unsafe_allow_html=True)
 
         # Progress bar
         progress_bar = st.progress(0)
@@ -118,7 +170,7 @@ if uploaded_video:
                     for *xyxy, conf, cls in reversed(det):
                         x1, y1, x2, y2 = map(int, xyxy)
                         label = f'{model.names[int(cls)]} {conf:.2f}'
-                        color = (0, 255, 0) if model.names[int(cls)] in ['player1', 'player2','person1','person2'] else (255, 0, 0)
+                        color = (0, 255, 0) if model.names[int(cls)] in ['player1', 'player2', 'person1', 'person2'] else (255, 0, 0)
                         cv2.rectangle(frame_resized, (x1, y1), (x2, y2), color, 2)
                         if label:
                             t_size = cv2.getTextSize(label, 0, fontScale=0.5, thickness=1)[0]
@@ -136,7 +188,7 @@ if uploaded_video:
         cap.release()
         out.release()
 
-        st.success("Detection complete! 🎉")
+        st.success("✅ Detection complete! 🎉")
 
         # Display processed video
         st.video(output_path)
@@ -144,8 +196,13 @@ if uploaded_video:
         # Provide download button
         with open(output_path, "rb") as file:
             st.download_button(
-                label="Download Processed Video",
+                label="⬇️ Download Processed Video",
                 data=file,
                 file_name="processed_video.mp4",
                 mime="video/mp4"
             )
+
+# Footer
+st.markdown("""
+    <footer>✨ Created using <strong>Streamlit</strong> and <strong>YOLOv5</strong>.</footer>
+""", unsafe_allow_html=True)
